@@ -1,10 +1,7 @@
-app = "spaceinvansion2"
+app = "spacegalaxy1"
 
 [build]
   dockerfile = "Dockerfile"
-
-[env]
-  NODE_ENV = "production"
 
 [http_service]
   internal_port = 3000
