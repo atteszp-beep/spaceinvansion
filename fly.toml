@@ -1,3 +1,14 @@
-git add fly.toml
-git commit -m "add fly config"
-git push
+app = "spaceinvansion"
+
+[build]
+  builder = "heroku/buildpacks:20"
+
+[env]
+  NODE_ENV = "production"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_start_machines = true
+  auto_stop_machines = false
+  min_machines_running = 1
