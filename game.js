@@ -1,125 +1,83 @@
-const socket = io();
+const socket = io("https://spaceinvansion-p1tl.onrender.com", {
+    transports: ["websocket"],
+    reconnection: true,
+    reconnectionAttempts: Infinity
+});
 
 const c = document.getElementById("game");
 const ctx = c.getContext("2d");
 
-const radar = document.getElementById("radar");
-const rctx = radar.getContext("2d");
+const mini = document.getElementById("minimap");
+const mctx = mini.getContext("2d");
 
-let myId;
+let mySector = 1;
 let players = {};
-let drones = [];
-let lasers = [];
-let mode = "lobby";
+let bullets = [];
 
-let keys = {};
+let player = { x: 500, y: 500, angle: 0, hp: 100 };
+let input = { x: 0, y: 0 };
 
-// INPUT
-document.addEventListener("keydown", e => {
-    keys[e.key] = true;
-    if (e.key === " ") socket.emit("shoot");
+/* SOCKET */
+socket.on("joined", s => mySector = s);
+
+socket.on("state", d => {
+    players = d.sectors?.[mySector] || {};
+    bullets = d.bullets || [];
 });
 
-document.addEventListener("keyup", e => keys[e.key] = false);
-
-socket.on("connect", () => myId = socket.id);
-
-// MODE
-function select(m) {
-    socket.emit("selectMode", m);
+/* START */
+function startMulti(){
+    document.getElementById("menu").style.display="none";
+    socket.emit("joinSector",1);
 }
 
-socket.on("mode", d => {
-    mode = d.mode;
-    document.getElementById("mode").innerText = mode;
-});
+/* MOVE */
+function update(){
+    player.x += input.x * 6;
+    player.y += input.y * 6;
+    socket.emit("move", player);
+}
 
-// STATE
-socket.on("state", s => {
-    players = s.players;
-    drones = s.drones;
-    lasers = s.lasers;
-});
+/* DRAW */
+function draw(){
+    ctx.clearRect(0,0,900,600);
 
-// LOOP
-function loop() {
+    for(let id in players){
+        let p=players[id];
 
-    let me = players[myId];
-
-    if (me) {
-
-        if (keys["ArrowUp"]) me.y -= 5;
-        if (keys["ArrowDown"]) me.y += 5;
-        if (keys["ArrowLeft"]) me.x -= 5;
-        if (keys["ArrowRight"]) me.x += 5;
-
-        socket.emit("move", me);
-
-        document.getElementById("shield").innerText = me.shield;
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,20,0,Math.PI*2);
+        ctx.fillStyle="cyan";
+        ctx.fill();
     }
 
-    draw();
-    drawRadar();
+    bullets.forEach(b=>{
+        if(b.sector!==mySector) return;
+        ctx.fillRect(b.x,b.y,5,5);
+    });
+}
 
+/* MINIMAP */
+function drawMini(){
+    mctx.clearRect(0,0,180,180);
+
+    for(let id in players){
+        let p=players[id];
+        let x=(p.x/900)*180;
+        let y=(p.y/600)*180;
+
+        mctx.fillRect(x,y,3,3);
+    }
+}
+
+/* LOOP */
+function loop(){
+    update();
+    draw();
+    drawMini();
     requestAnimationFrame(loop);
 }
-
-// DRAW SCI-FI WORLD
-function draw() {
-
-    // space background
-    ctx.fillStyle = "#02010a";
-    ctx.fillRect(0, 0, 900, 600);
-
-    // lasers (neon)
-    lasers.forEach(l => {
-        ctx.fillStyle = "#00ffff";
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = "#00ffff";
-        ctx.fillRect(l.x, l.y, 3, 3);
-        ctx.shadowBlur = 0;
-    });
-
-    // drones
-    drones.forEach(d => {
-        ctx.fillStyle = "#ff00ff";
-        ctx.fillRect(d.x, d.y, 18, 18);
-    });
-
-    // players
-    for (let id in players) {
-        let p = players[id];
-
-        ctx.fillStyle = "#00ff88";
-        ctx.fillRect(p.x, p.y, 20, 20);
-    }
-}
-
-// RADAR (SCI-FI HUD)
-function drawRadar() {
-
-    rctx.fillStyle = "rgba(0,0,20,0.8)";
-    rctx.fillRect(0, 0, 200, 200);
-
-    let me = players[myId];
-    if (!me) return;
-
-    let scale = 0.15;
-
-    drones.forEach(d => {
-        rctx.fillStyle = "#ff00ff";
-        rctx.fillRect((d.x - me.x) * scale + 100, (d.y - me.y) * scale + 100, 3, 3);
-    });
-
-    for (let id in players) {
-        let p = players[id];
-
-        rctx.fillStyle = "#00ff88";
-        rctx.fillRect((p.x - me.x) * scale + 100, (p.y - me.y) * scale + 100, 4, 4);
-    }
-
-    rctx.fillStyle = "#00ffff";
-    rctx.fillRect(100, 100, 4, 4);
+loop();00, 4, 4);
 }
 
 loop();
