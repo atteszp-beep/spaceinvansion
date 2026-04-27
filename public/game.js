@@ -1,140 +1,83 @@
-const socket = io("http://localhost:30001");
+const socket = io("https://spaceinvansion-p1tl.onrender.com", {
+    transports: ["websocket"],
+    reconnection: true,
+    reconnectionAttempts: Infinity
+});
 
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+const c = document.getElementById("game");
+const ctx = c.getContext("2d");
 
-const radar = document.getElementById("radar");
-const rctx = radar.getContext("2d");
+const mini = document.getElementById("minimap");
+const mctx = mini.getContext("2d");
 
+let mySector = 1;
 let players = {};
-let lasers = {};
-let drones = {};
+let bullets = [];
 
-let myId;
+let player = { x: 500, y: 500, angle: 0, hp: 100 };
+let input = { x: 0, y: 0 };
 
-/* ================= IMAGES ================= */
-const imgP = new Image(); imgP.src = "img/spaceship.png";
-const imgA = new Image(); imgA.src = "img/alien.png";
-const imgB = new Image(); imgB.src = "img/bullet.png";
+/* SOCKET */
+socket.on("joined", s => mySector = s);
 
-/* ================= CONNECT ================= */
-socket.on("connect",()=>{
-myId = socket.id;
+socket.on("state", d => {
+    players = d.sectors?.[mySector] || {};
+    bullets = d.bullets || [];
 });
 
-/* ================= STATE ================= */
-socket.on("state",(data)=>{
-players = data.players;
-lasers = data.lasers;
-drones = data.drones;
-});
+/* START */
+function startMulti(){
+    document.getElementById("menu").style.display="none";
+    socket.emit("joinSector",1);
+}
 
-/* ================= INPUT ================= */
-document.addEventListener("keydown",(e)=>{
-if(e.key===" ") socket.emit("shoot");
-});
-
-/* ================= JOYSTICK ================= */
-let joy = {x:0,y:0,active:false};
-
-const base = document.getElementById("joystickBase");
-const stick = document.getElementById("joystickStick");
-
-base.addEventListener("mousedown",()=>joy.active=true);
-
-document.addEventListener("mouseup",()=>{
-joy.active=false;
-joy.x=0; joy.y=0;
-stick.style.transform="translate(0,0)";
-});
-
-document.addEventListener("mousemove",(e)=>{
-if(!joy.active) return;
-
-let r = base.getBoundingClientRect();
-
-let x = e.clientX - r.left - 60;
-let y = e.clientY - r.top - 60;
-
-let len = Math.hypot(x,y);
-if(len>50){ x/=len; y/=len; x*=50; y*=50; }
-
-joy.x = x/50;
-joy.y = y/50;
-
-stick.style.transform=`translate(${x}px,${y}px)`;
-});
-
-/* ================= UPDATE ================= */
+/* MOVE */
 function update(){
-
-let me = players[myId];
-if(!me) return;
-
-me.x += joy.x * 5;
-me.y += joy.y * 5;
-
-me.angle = Math.atan2(joy.y,joy.x);
-
-socket.emit("move",me);
+    player.x += input.x * 6;
+    player.y += input.y * 6;
+    socket.emit("move", player);
 }
 
-/* ================= DRAW ================= */
+/* DRAW */
 function draw(){
+    ctx.clearRect(0,0,900,600);
 
-ctx.fillStyle="black";
-ctx.fillRect(0,0,900,600);
+    for(let id in players){
+        let p=players[id];
 
-/* LASERS */
-for(let i in lasers){
-let l = lasers[i];
-ctx.fillStyle="cyan";
-ctx.fillRect(l.x,l.y,4,4);
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,20,0,Math.PI*2);
+        ctx.fillStyle="cyan";
+        ctx.fill();
+    }
+
+    bullets.forEach(b=>{
+        if(b.sector!==mySector) return;
+        ctx.fillRect(b.x,b.y,5,5);
+    });
 }
 
-/* DRONES */
-for(let i in drones){
-let d = drones[i];
-ctx.drawImage(imgA,d.x,d.y,20,20);
+/* MINIMAP */
+function drawMini(){
+    mctx.clearRect(0,0,180,180);
+
+    for(let id in players){
+        let p=players[id];
+        let x=(p.x/900)*180;
+        let y=(p.y/600)*180;
+
+        mctx.fillRect(x,y,3,3);
+    }
 }
 
-/* PLAYERS */
-for(let id in players){
-let p = players[id];
-
-ctx.save();
-ctx.translate(p.x,p.y);
-ctx.rotate(p.angle||0);
-ctx.drawImage(imgP,-16,-16,32,32);
-ctx.restore();
-}
-
-}
-
-/* ================= RADAR ================= */
-function radarDraw(){
-
-rctx.fillStyle="black";
-rctx.fillRect(0,0,200,200);
-
-let me = players[myId];
-if(!me) return;
-
-for(let id in players){
-let p = players[id];
-
-rctx.fillStyle="lime";
-rctx.fillRect((p.x-me.x)*0.1+100,(p.y-me.y)*0.1+100,3,3);
-}
-
-}
-
-/* ================= LOOP ================= */
+/* LOOP */
 function loop(){
-update();
-draw();
-radarDraw();
-requestAnimationFrame(loop);
+    update();
+    draw();
+    drawMini();
+    requestAnimationFrame(loop);
+}
+loop();00, 4, 4);
 }
 
 loop();
