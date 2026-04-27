@@ -4,7 +4,7 @@ app = "spacegalaxy1"
   dockerfile = "Dockerfile"
 
 [http_service]
-  internal_port = 3000
+  internal_port = 4000
   force_https = true
   auto_start_machines = true
   auto_stop_machines = false
