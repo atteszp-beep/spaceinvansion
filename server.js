@@ -5,15 +5,23 @@ const { Server } = require("socket.io");
 const app = express();
 const server = http.createServer(app);
 
-app.get("/", (req, res) => {
-    res.send("OK");
+const io = new Server(server, {
+    cors: { origin: "*" }
 });
 
-const io = new Server(server);
+app.use(express.static("public"));
 
-const PORT = process.env.PORT || 3000;
+app.get("/", (req, res) => {
+    res.send("🚀 SCIFI RENDER SERVER LIVE");
+});
+
+/* SOCKET */
+io.on("connection", (socket) => {
+    console.log("player:", socket.id);
+});
+
+const PORT = process.env.PORT || 4000;
 
 server.listen(PORT, "0.0.0.0", () => {
-    console.log("RUNNING", PORT);
-});er(id, l.owner);
-                las
+    console.log("RUNNING ON", PORT);
+});
