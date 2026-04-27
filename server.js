@@ -109,6 +109,6 @@ setInterval(()=>{
 
 },30);
 
-server.listen(3008,()=>{
-    console.log("🚀 SERVER RUNNING ON PORT 3008");
+server.listen(4000,()=>{
+    console.log("🚀 SERVER RUNNING ON PORT 4000");
 });
