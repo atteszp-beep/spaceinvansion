@@ -14,10 +14,6 @@ const io = new Server(server, {
 app.use(express.static("public"));
 
 /* ===== HEALTH CHECK ===== */
-app.get("/", (req, res) => {
-    res.send("🚀 SCIFI MULTIPLAYER SERVER LIVE");
-});
-
 /* ===== CONFIG ===== */
 const MAX_PER_SECTOR = 6;
 const SECTOR_COUNT = 5;
