@@ -1,4 +1,6 @@
-const socket = io("https://spaceinvansion-p1tl.onrender.com", {
+console.log("RENDER TEST 123");
+# vagy bármilyen editor
+# majd mentsd el!const socket = io("https://spaceinvansion-p1tl.onrender.com", {
     transports: ["websocket"],
     reconnection: true,
     reconnectionAttempts: Infinity
