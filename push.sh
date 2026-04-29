@@ -1,14 +1,21 @@
 #!/bin/bash
 
-echo "🚀 scifi_aaa auto deploy indul..."
+# CONFIG
+REPO_DIR=~/scifi_aaa
+BRANCH=main
+COMMIT_MSG="auto update $(date '+%Y-%m-%d %H:%M:%S')"
 
-# minden fájl hozzáadása
-git add .
+cd $REPO_DIR || exit
 
-# commit üzenet időbélyeggel
-git commit -m "auto deploy: $(date '+%Y-%m-%d %H:%M:%S')"
+# ellenőrzés van-e változás
+if [[ -n $(git status --porcelain) ]]; then
+  echo "🔄 Changes detected..."
 
-# push GitHubra
-git push
+  git add .
+  git commit -m "$COMMIT_MSG"
+  git push origin $BRANCH
 
-echo "✅ kész! feltöltve GitHubra."
+  echo "✅ Pushed to GitHub"
+else
+  echo "✔ No changes"
+fi

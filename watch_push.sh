@@ -1,21 +1,22 @@
-#!/bin/bas#!/bin/bash
+#!/bin/bash
 
-echo "👀 Smart auto push watcher elindult..."
+REPO_DIR=~/scifi_aaa
 
-while true; do
+while true
+do
+  cd $REPO_DIR || exit
 
-  # figyeli a fájl változásokat
-  inotifywait -r -e modify,create,delete .
+  if [[ -n $(git status --porcelain) ]]; then
+    echo "🔄 Changes detected..."
 
-  echo "🔍 változás észlelve → ellenőrzés..."
+    git add .
+    git commit -m "auto $(date '+%Y-%m-%d %H:%M:%S')"
+    git push origin main
 
-  # Git státusz ellenőrzés
-  if git diff --quiet && git diff --cached --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then
-    echo "⚠️ nincs valódi változás → nincs push"
+    echo "✅ Pushed"
   else
-    echo "🚀 valódi változás → push indul!"
-    ./push.sh
+    echo "✔ No changes"
   fi
 
-  echo "⏳ várakozás..."
+  sleep 10
 done
