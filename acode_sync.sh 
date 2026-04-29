@@ -1,0 +1,24 @@
+#!/data/data/com.termux/files/usr/bin/bash
+
+cd ~/scifi_aaa || exit
+
+echo "⚡ ACODE LIVE SYNC AKTÍV"
+
+inotifywait -m -r \
+--exclude '\.git|node_modules|.log' \
+-e close_write,create,delete,modify . | while read path action file; do
+
+  echo "📡 SAVE DETECTED: $file"
+
+  git add -A
+
+  # csak akkor pushol ha van változás
+  if ! git diff --cached --quiet; then
+
+    git commit -m "acode sync $(date '+%H:%M:%S')"
+    git push origin main
+
+    echo "🚀 PUSH DONE"
+  fi
+
+done	
