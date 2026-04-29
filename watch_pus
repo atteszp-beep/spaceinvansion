@@ -1,0 +1,28 @@
+#!/bin/bash
+
+echo "👀 Git auto watcher indul..."
+
+while true; do
+  sleep 5
+
+  # 🔒 LOCK CHECK
+  if [ -f .git/index.lock ]; then
+    echo "⛔ Git lock van, kihagy..."
+    continue
+  fi
+
+  CHANGES=$(git status --porcelain)
+
+  if [ ! -z "$CHANGES" ]; then
+    echo "📦 Változás észlelve..."
+
+    git add .
+
+    git commit -m "auto update $(date '+%Y-%m-%d %H:%M:%S')" || continue
+
+    git push
+
+    echo "🚀 Feltöltve GitHubra!"
+  fi
+
+done
