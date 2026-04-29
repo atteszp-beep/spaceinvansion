@@ -1,22 +1,23 @@
-#!/bin/bash
+#!/data/data/com.termux/files/usr/bin/bash
 
-REPO_DIR=~/scifi_aaa
+cd ~/scifi_aaa || exit
 
-while true
-do
-  cd $REPO_DIR || exit
+echo "👀 Git auto watcher indul..."
 
-  if [[ -n $(git status --porcelain) ]]; then
-    echo "🔄 Changes detected..."
+while true; do
 
-    git add .
-    git commit -m "auto $(date '+%Y-%m-%d %H:%M:%S')"
+  git add .
+
+  if ! git diff --cached --quiet; then
+    echo "📦 Változás észlelve..."
+
+    git commit -m "auto update $(date '+%Y-%m-%d %H:%M:%S')"
+
     git push origin main
 
-    echo "✅ Pushed"
-  else
-    echo "✔ No changes"
+    echo "🚀 Feltöltve GitHubra!"
   fi
 
-  sleep 10
+  sleep 5
+
 done
