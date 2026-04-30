@@ -4058,3 +4058,15 @@ Watches established.
 📦 Changes detected...
 [main 0c19366] auto sync 2026-04-30 10:16:03
  2 files changed, 12 insertions(+)
+To github.com:atteszp-beep/spaceinvansion.git
+ ! [remote rejected] main -> main (cannot lock ref 'refs/heads/main': is at ba09d8be87381b4275d124976307e948c5187819 but expected a6e5a234db4d2c39de00e09faca0980e5bd788b9)
+error: failed to push some refs to 'github.com:atteszp-beep/spaceinvansion.git'
+🚀 Synced to GitHub!
+Setting up watches.  Beware: since -r was given, this may take a while!
+Watches established.
+./ MODIFY sync.log
+📦 Changes detected...
+fatal: Unable to create '/data/data/com.termux/files/home/scifi_aaa/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, or the lock file may be stale
+No changes to commit
