@@ -5642,3 +5642,8 @@ Changes not staged for commit:
 
 no changes added to commit (use "git add" and/or "git commit -a")
 No changes to commit
+To github.com:atteszp-beep/spaceinvansion.git
+ ! [remote rejected] main -> main (cannot lock ref 'refs/heads/main': is at 7b8f52431d6399ada0de615116130e88e65d5649 but expected 3d9ac5ba70e79ecdf06bef996fdde11ee3433b4d)
+error: failed to push some refs to 'github.com:atteszp-beep/spaceinvansion.git'
+🚀 Synced to GitHub!
+Setting up watches.  Beware: since -r was given, this may take a while!
