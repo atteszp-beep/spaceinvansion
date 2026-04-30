@@ -5615,3 +5615,11 @@ Watches established.
 📦 Changes detected...
 [main 2c636b4] auto sync 2026-04-30 10:23:42
  2 files changed, 9 insertions(+)
+To github.com:atteszp-beep/spaceinvansion.git
+ ! [remote rejected] main -> main (cannot lock ref 'refs/heads/main': is at 2c636b4ea4c1be7f5ea0708e9f735bce1b98896b but expected 2951aff347bc4feba1e60ecf18f665969dd48f6b)
+error: failed to push some refs to 'github.com:atteszp-beep/spaceinvansion.git'
+🚀 Synced to GitHub!
+Setting up watches.  Beware: since -r was given, this may take a while!
+Watches established.
+./ MODIFY watchdog.log
+📦 Changes detected...
