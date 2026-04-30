@@ -14,3 +14,17 @@ Setting up watches.  Beware: since -r was given, this may take a while!
 Watches established.
 ./.git/objects/bc/ CREATE tmp_obj_rb1GgG
 📦 Changes detected...
+On branch main
+Your branch is ahead of 'origin/main' by 3 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+No changes to commit
+To github.com:atteszp-beep/spaceinvansion.git
+ ! [remote rejected] main -> main (cannot lock ref 'refs/heads/main': is at bc71af294da440dc081a0f2cc97dc30e5bef61b3 but expected 088426c1887ec41c1b86a4d48c60a99826d5dee8)
+error: failed to push some refs to 'github.com:atteszp-beep/spaceinvansion.git'
+🚀 Synced to GitHub!
+Setting up watches.  Beware: since -r was given, this may take a while!
+Watches established.
+./ MODIFY sync.log
+📦 Changes detected...
