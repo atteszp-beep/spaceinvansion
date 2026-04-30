@@ -2892,3 +2892,8 @@ Setting up watches.  Beware: since -r was given, this may take a while!
 Watches established.
 ./.git/objects/ef/ CREATE tmp_obj_VYTDer
 📦 Changes detected...
+fatal: Unable to create '/data/data/com.termux/files/home/scifi_aaa/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, or the lock file may be stale
+[main 886555b] auto sync 2026-04-30 10:11:53
+ 1 file changed, 3 insertions(+)
