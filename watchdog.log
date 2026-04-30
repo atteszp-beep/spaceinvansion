@@ -9796,3 +9796,22 @@ To github.com:atteszp-beep/spaceinvansion.git
    a26e908..cb8d3ca  main -> main
 🚀 Synced to GitHub!
 Setting up watches.  Beware: since -r was given, this may take a while!
+Watches established.
+./ MODIFY watchdog.log
+📦 Changes detected...
+On branch main
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   watchdog.log
+
+no changes added to commit (use "git add" and/or "git commit -a")
+No changes to commit
+To github.com:atteszp-beep/spaceinvansion.git
+ ! [remote rejected] main -> main (cannot lock ref 'refs/heads/main': is at a1e2860843934050120d8e97b455b5b7a2cd126c but expected cb8d3ca6f0f4b5966bafc9e6565ee371f7566a2f)
+error: failed to push some refs to 'github.com:atteszp-beep/spaceinvansion.git'
+🚀 Synced to GitHub!
+Setting up watches.  Beware: since -r was given, this may take a while!
