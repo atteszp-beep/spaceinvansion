@@ -15157,3 +15157,7 @@ fatal: Could not read from remote repository.
 Please make sure you have the correct access rights
 and the repository exists.
 🚀 Synced to GitHub!
+Setting up watches.  Beware: since -r was given, this may take a while!
+Watches established.
+./.git/objects/60/ CREATE tmp_obj_VuTkaB
+📦 Changes detected...
