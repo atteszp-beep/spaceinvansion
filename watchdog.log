@@ -9206,3 +9206,24 @@ To github.com:atteszp-beep/spaceinvansion.git
 error: failed to push some refs to 'github.com:atteszp-beep/spaceinvansion.git'
 🚀 Synced to GitHub!
 Setting up watches.  Beware: since -r was given, this may take a while!
+Watches established.
+./ MODIFY watchdog.log
+📦 Changes detected...
+fatal: Unable to create '/data/data/com.termux/files/home/scifi_aaa/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, or the lock file may be stale
+On branch main
+Your branch is ahead of 'origin/main' by 2 commits.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   watchdog.log
+
+no changes added to commit (use "git add" and/or "git commit -a")
+No changes to commit
+To github.com:atteszp-beep/spaceinvansion.git
+   b71bdc9..e6176ad  main -> main
+🚀 Synced to GitHub!
+Setting up watches.  Beware: since -r was given, this may take a while!
