@@ -73,3 +73,8 @@ Your branch is ahead of 'origin/main' by 3 commits.
 
 nothing to commit, working tree clean
 No changes to commit
+To github.com:atteszp-beep/spaceinvansion.git
+ ! [remote rejected] main -> main (cannot lock ref 'refs/heads/main': is at 42e6b64aac0b958ad59135cda777e7bc0587673d but expected 3fc63861d8f88c90b62c7275a44a5ed2907ee763)
+error: failed to push some refs to 'github.com:atteszp-beep/spaceinvansion.git'
+🚀 Synced to GitHub!
+Setting up watches.  Beware: since -r was given, this may take a while!
