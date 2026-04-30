@@ -752,3 +752,10 @@ To github.com:atteszp-beep/spaceinvansion.git
    091756b..a5dfb25  main -> main
 🚀 Synced to GitHub!
 Setting up watches.  Beware: since -r was given, this may take a while!
+Watches established.
+./.git/objects/65/ CREATE tmp_obj_9ifg7Q
+📦 Changes detected...
+fatal: Unable to create '/data/data/com.termux/files/home/scifi_aaa/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, or the lock file may be stale
+No changes to commit
