@@ -11101,3 +11101,14 @@ error: failed to push some refs to 'github.com:atteszp-beep/spaceinvansion.git'
 Setting up watches.  Beware: since -r was given, this may take a while!
 Watches established.
 ./.git/objects/0b/ CREATE tmp_obj_k4RMt4
+📦 Changes detected...
+fatal: Unable to create '/data/data/com.termux/files/home/scifi_aaa/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, or the lock file may be stale
+[main b3e3bf7] auto sync 2026-04-30 10:43:56
+ 1 file changed, 7 insertions(+)
+To github.com:atteszp-beep/spaceinvansion.git
+ ! [remote rejected] main -> main (cannot lock ref 'refs/heads/main': is at 0b4b854dfc3b668adb21c54a408972e4080e8b1b but expected 40539eb00694f6fe30faf750961e21033d75113b)
+error: failed to push some refs to 'github.com:atteszp-beep/spaceinvansion.git'
+🚀 Synced to GitHub!
+Setting up watches.  Beware: since -r was given, this may take a while!
