@@ -15699,3 +15699,9 @@ Please make sure you have the correct access rights
 and the repository exists.
 🚀 Synced to GitHub!
 Setting up watches.  Beware: since -r was given, this may take a while!
+Watches established.
+./.git/objects/4a/ CREATE tmp_obj_Tp6vtF
+📦 Changes detected...
+fatal: Unable to create '/data/data/com.termux/files/home/scifi_aaa/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, or the lock file may be stale
