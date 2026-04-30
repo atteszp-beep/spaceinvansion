@@ -1,12 +1,15 @@
-#!/bin/bash
+#!/data/data/com.termux/files/usr/bin/bash
 
-echo "🚀 GitHub Pages deploy indul..."
+cd ~/scifi_aaa || exit
 
-git add .
+echo "📦 Git pull indul..."
 
-git commit -m "deploy: $(date '+%Y-%m-%d %H:%M:%S')"
+git pull origin main
 
-git push
+echo "🔧 Deploy frissítés..."
 
-echo "🌐 kész! GitHub Pages frissülni fog."
-echo "👉 https://atteszp-beep.github.io/spaceinvansion/"
+# ha build kell:
+# npm install
+# npm run build
+
+echo "✅ Deploy kész: $(date)"
