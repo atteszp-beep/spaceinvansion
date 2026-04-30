@@ -1,342 +1,330 @@
-<!DOCTYPE html>  
-<html lang="hu">  
-<head>  
-  <meta charset="UTF-8">  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-  <meta name="theme-color" content="#000000">  
-  <title>Sci-Fi Warzone</title>    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">    <style>  
-    body {  
-      margin: 0;  
-      overflow: hidden;  
-      font-family: 'Orbitron', Arial;  
-      background: black;  
-      color: white;  
-    }  
-  
-    /* FIXED BACKGROUND */  
-    #bg {  
-      position: fixed;  
-      inset: 0;  
-      background: url("img/BG.png") center/cover no-repeat;  
-      background-attachment: fixed;  
-      filter: brightness(0.4);  
-      z-index: -2;  
-    }  
-  
-    /* STARS LAYER */  
-    #stars {  
-      position: fixed;  
-      inset: 0;  
-      z-index: -1;  
-    }  
-  
-    /* MENU */  
-    #menu {  
-      position: absolute;  
-      width: 100%;  
-      height: 100%;  
-      display: flex;  
-      flex-direction: column;  
-      justify-content: center;  
-      align-items: center;  
-      background: rgba(0, 0, 0, 0.5);  
-    }  
-  
-    button {  
-      padding: 15px 30px;  
-      margin: 10px;  
-      font-size: 20px;  
-      cursor: pointer;  
-    }  
-  
-    /* HUD */  
-    #hud {  
-      position: absolute;  
-      top: 10px;  
-      left: 10px;  
-      display: none;  
-    }  
-  
-    /* WEAPONS */  
-    #weapons {  
-      position: absolute;  
-      bottom: 80px;  
-      right: 20px;  
-      display: none;  
-    }  
-  
-    /* FLASH FIX (NOT WHITE SCREEN) */  
-    #flash {  
-      position: absolute;  
-      inset: 0;  
-      background: rgba(0, 200, 255, 0.3);  
-      opacity: 0;  
-      pointer-events: none;  
-      transition: 0.1s;  
-    }  
-  
-    /* JOYSTICK */  
-    #joystick {  
-      position: absolute;  
-      bottom: 20px;  
-      left: 20px;  
-      width: 100px;  
-      height: 100px;  
-      border: 2px solid white;  
-      border-radius: 50%;  
-    }  
-  
-    #stick {  
-      width: 40px;  
-      height: 40px;  
-      background: rgba(255, 255, 255, 0.5);  
-      border-radius: 50%;  
-      position: relative;  
-      left: 30px;  
-      top: 30px;  
-    }  
-  </style>  </head>  <body>  
-  <div id="bg"></div>  
-  <canvas id="stars"></canvas>  
-  <canvas id="game" width="900" height="600"></canvas>    <div id="flash"></div>    <div id="menu">  
-    <h1>Sci-Fi Warzone</h1>  
-    <button onclick="startSingle()">Play</button>  
-  </div>    <div id="hud"></div>    <div id="joystick">  
-    <div id="stick"></div>  
-  </div>    <script>  
-    /* ================= AUDIO ================= */  
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();  
-  
-    function beep(f, t, type = "sine", v = 0.1) {  
-      const o = audioCtx.createOscillator();  
-      const g = audioCtx.createGain();  
-  
-      o.type = type;  
-      o.frequency.value = f;  
-      g.gain.value = v;  
-  
-      o.connect(g);  
-      g.connect(audioCtx.destination);  
-  
-      o.start();  
-      o.stop(audioCtx.currentTime + t);  
-    }  
-  
-    const soundShoot = () => beep(600, 0.05, "square", 0.05);  
-    const soundHit = () => beep(200, 0.08, "sawtooth", 0.08);  
-  
-    /* ================= USER ================= */  
-    let username = sessionStorage.getItem("username") || "Player";  
-  
-    /* ================= CANVAS ================= */  
-    const canvas = document.getElementById("game");  
-    const ctx = canvas.getContext("2d");  
-  
-    canvas.width = 900;  
-    canvas.height = 600;  
-  
-    /* ================= WORLD ================= */  
-    let socket = null;  
-    let players = {};  
-    let bullets = [];  
-    let aliens = [];  
-  
-    const player = {  
-      x: 0, y: 0,  
-      vx: 0, vy: 0,  
-      angle: 0,  
-      rotTarget: 0  
-    };  
-  
-    const cam = { x: 0, y: 0 };  
-    let input = { x: 0, y: 0 };  
-    let score = 0;  
-    let lastShot = 0;  
-  
-    /* ================= IMAGES ================= */  
-    const imgP = new Image(); imgP.src = "./player.png";  
-    const imgA = new Image(); imgA.src = "./alien.png";  
-  
-    /* ================= GALAXY (WORLD STAR FIX) ================= */  
-    const stars = Array.from({ length: 300 }, () => ({  
-      x: Math.random() * 8000 - 4000,  
-      y: Math.random() * 8000 - 4000  
-    }));  
-  
-    /* ================= JOYSTICK FIX ================= */  
-    class Joystick {  
-      constructor(zone, stick, cb) {  
-        this.zone = zone;  
-        this.stick = stick;  
-        this.cb = cb;  
-        this.max = 40;  
-        this.active = false;  
-  
-        const move = (e) => {  
-          const r = zone.getBoundingClientRect();  
-          const cx = r.left + r.width / 2;  
-          const cy = r.top + r.height / 2;  
-  
-          const p = e.touches ? e.touches[0] : e;  
-          let dx = p.clientX - cx;  
-          let dy = p.clientY - cy;  
-  
-          const len = Math.hypot(dx, dy);  
-  
-          if (len > this.max) {  
-            dx = dx / len * this.max;  
-            dy = dy / len * this.max;  
-          }  
-  
-          stick.style.transform = `translate(${dx}px,${dy}px)`;  
-  
-          cb({  
-            x: dx / this.max,  
-            y: dy / this.max  
-          });  
-  
-          if (len > 5) {  
-            player.rotTarget = Math.atan2(dy, dx);  
-          }  
-        };  
-  
-        zone.addEventListener("touchstart", e => this.active = true && move(e));  
-        zone.addEventListener("touchmove", e => this.active && move(e));  
-        zone.addEventListener("touchend", () => this.reset());  
-  
-        zone.addEventListener("mousedown", e => this.active = true && move(e));  
-        window.addEventListener("mousemove", e => this.active && move(e));  
-        window.addEventListener("mouseup", () => this.reset());  
-      }  
-  
-      reset() {  
-        this.stick.style.transform = "translate(0,0)";  
-        input = { x: 0, y: 0 };  
-      }  
-    }  
-  
-    new Joystick(  
-      document.getElementById("joystick"),  
-      document.getElementById("stick"),  
-      v => input = v  
-    );  
-  
-    /* ================= UPDATE ================= */  
-    function update() {  
-      // rotation  
-      let d = player.rotTarget - player.angle;  
-      d = Math.atan2(Math.sin(d), Math.cos(d));  
-      player.angle += d * 0.12;  
-  
-      // movement (FIXED: angle based!)  
-      const fx = Math.cos(player.angle);  
-      const fy = Math.sin(player.angle);  
-      const rx = -fy;  
-      const ry = fx;  
-  
-      player.vx += (fx * input.y + rx * input.x) * 0.35;  
-      player.vy += (fy * input.y + ry * input.x) * 0.35;  
-  
-      let sp = Math.hypot(player.vx, player.vy);  
-      const max = 6;  
-  
-      if (sp > max) {  
-        player.vx *= max / sp;  
-        player.vy *= max / sp;  
-      }  
-  
-      player.vx *= 0.9;  
-      player.vy *= 0.9;  
-  
-      player.x += player.vx;  
-      player.y += player.vy;  
-  
-      // CAMERA FIX (NO DRIFT)  
-      cam.x = player.x - canvas.width / 2;  
-      cam.y = player.y - canvas.height / 2;  
-  
-      // bullets  
-      bullets.forEach(b => {  
-        b.x += b.vx;  
-        b.y += b.vy;  
-      });  
-  
-      // AI  
-      aliens.forEach(a => {  
-        let dx = player.x - a.x;  
-        let dy = player.y - a.y;  
-        let d = Math.hypot(dx, dy);  
-  
-        if (d < 700) {  
-          a.x += dx / d;  
-          a.y += dy / d;  
-        }  
-      });  
-  
-      // collision  
-      bullets.forEach(b => {  
-        aliens.forEach(a => {  
-          let d = Math.hypot(b.x - a.x, b.y - a.y);  
-          if (d < 40) {  
-            a.hp -= 25;  
-            b.dead = true;  
-            score += 10;  
-            soundHit();  
-          }  
-        });  
-      });  
-  
-      bullets = bullets.filter(b => !b.dead);  
-      aliens = aliens.filter(a => a.hp > 0);  
-    }  
-  
-    /* ================= BACKGROUND (TRUE GALAXY FIX) ================= */  
-    function drawStars() {  
-      ctx.fillStyle = "#000";  
-      ctx.fillRect(0, 0, 900, 600);  
-  
-      for (let s of stars) {  
-        let x = (s.x - cam.x * 0.3) % 900;  
-        let y = (s.y - cam.y * 0.3) % 600;  
-  
-        if (x < 0) x += 900;  
-        if (y < 0) y += 600;  
-  
-        ctx.fillStyle = "white";  
-        ctx.fillRect(x, y, 2, 2);  
-      }  
-    }  
-  
-    /* ================= DRAW ================= */  
-    function draw() {  
-      drawStars();  
-  
-      // bullets  
-      bullets.forEach(b => {  
-        ctx.fillStyle = "#00ff44";  
-        ctx.fillRect(b.x - cam.x, b.y - cam.y, 6, 3);  
-      });  
-  
-      // player  
-      ctx.save();  
-      ctx.translate(player.x - cam.x, player.y - cam.y);  
-      ctx.rotate(player.angle);  
-      ctx.drawImage(imgP, -40, -40, 80, 80);  
-      ctx.restore();  
-  
-      // aliens  
-      aliens.forEach(a => {  
-        ctx.drawImage(imgA, a.x - cam.x - 40, a.y - cam.y - 40, 80, 80);  
-      });  
-    }  
-  
-    /* ================= LOOP ================= */  
-    function loop() {  
-      update();  
-      draw();  
-      requestAnimationFrame(loop);  
-    }  
-  
-    loop();  
-  </script>  </body>  
-</html>  	
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPACE GAME FULL FIX</title>
+
+<style>
+body{
+  margin:0;
+  overflow:hidden;
+  background:black;
+  font-family:Arial;
+  color:white;
+}
+
+#menu{
+  position:absolute;
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  background:rgba(0,0,0,0.7);
+}
+
+button{
+  padding:15px;
+  margin:10px;
+  font-size:18px;
+}
+
+#hud{
+  position:absolute;
+  top:10px;
+  left:10px;
+}
+
+#joystick{
+  position:absolute;
+  bottom:30px;
+  left:30px;
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.1);
+  touch-action:none;
+}
+
+#stick{
+  width:50px;
+  height:50px;
+  background:white;
+  border-radius:50%;
+  position:absolute;
+  left:35px;
+  top:35px;
+}
+
+canvas{
+  display:block;
+}
+</style>
+</head>
+
+<body>
+
+<div id="menu">
+  <h1>SPACE GAME</h1>
+  <input id="nameInput" placeholder="Username">
+  <button onclick="saveName()">START</button>
+</div>
+
+<div id="hud"></div>
+
+<div id="joystick"><div id="stick"></div></div>
+
+<canvas id="game"></canvas>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<script>
+/* ================= USER ================= */
+let username = sessionStorage.getItem("username") || "";
+
+function saveName(){
+  username = document.getElementById("nameInput").value || "Player";
+  sessionStorage.setItem("username", username);
+  startGame();
+}
+
+/* ================= CANVAS ================= */
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+
+/* ================= WORLD ================= */
+let socket = null;
+let players = {};
+let bullets = [];
+let aliens = [];
+
+const player = {
+  x:0,y:0,
+  vx:0,vy:0,
+  angle:0,
+  rotTarget:0
+};
+
+let cam = {x:0,y:0};
+let input = {x:0,y:0};
+
+/* ================= IMAGES ================= */
+const imgPlayer = new Image();
+imgPlayer.src = "img/player.png";
+
+const imgAlien = new Image();
+imgAlien.src = "img/alien.png";
+
+/* ================= GALAXY ================= */
+const stars = Array.from({length:400},()=>({
+  x:Math.random()*10000-5000,
+  y:Math.random()*10000-5000
+}));
+
+/* ================= JOYSTICK ================= */
+class Joystick{
+  constructor(zone,stick){
+    this.zone=zone;
+    this.stick=stick;
+    this.max=50;
+    this.active=false;
+
+    const move=(e)=>{
+      const r=zone.getBoundingClientRect();
+      const cx=r.left+r.width/2;
+      const cy=r.top+r.height/2;
+
+      const p=e.touches?e.touches[0]:e;
+
+      let dx=p.clientX-cx;
+      let dy=p.clientY-cy;
+
+      let len=Math.hypot(dx,dy);
+
+      if(len>this.max){
+        dx=dx/len*this.max;
+        dy=dy/len*this.max;
+      }
+
+      stick.style.transform=`translate(${dx}px,${dy}px)`;
+
+      input.x=dx/this.max;
+      input.y=dy/this.max;
+
+      if(len>5){
+        player.rotTarget=Math.atan2(dy,dx);
+      }
+    };
+
+    zone.addEventListener("touchstart",e=>{this.active=true;move(e)});
+    zone.addEventListener("touchmove",e=>this.active&&move(e));
+    zone.addEventListener("touchend",()=>this.reset());
+
+    zone.addEventListener("mousedown",e=>{this.active=true;move(e)});
+    window.addEventListener("mousemove",e=>this.active&&move(e));
+    window.addEventListener("mouseup",()=>this.reset());
+  }
+
+  reset(){
+    this.stick.style.transform="translate(0,0)";
+    input.x=0;
+    input.y=0;
+  }
+}
+
+new Joystick(
+  document.getElementById("joystick"),
+  document.getElementById("stick")
+);
+
+/* ================= START ================= */
+function startGame(){
+  document.getElementById("menu").style.display="none";
+
+  // spawn aliens
+  for(let i=0;i<20;i++){
+    aliens.push({
+      x:Math.random()*4000-2000,
+      y:Math.random()*4000-2000,
+      hp:100
+    });
+  }
+
+  // MULTI (Render)
+  socket = io("https://spaceinvansion-p1tl.onrender.com");
+
+  socket.emit("join",{name:username});
+
+  socket.on("state",data=>{
+    players=data.players;
+    bullets=data.bullets;
+  });
+}
+
+/* ================= SHOOT ================= */
+document.body.addEventListener("click",()=>{
+  bullets.push({
+    x:player.x,
+    y:player.y,
+    vx:Math.cos(player.angle)*12,
+    vy:Math.sin(player.angle)*12
+  });
+});
+
+/* ================= UPDATE ================= */
+function update(){
+
+  // rotation
+  let d=player.rotTarget-player.angle;
+  d=Math.atan2(Math.sin(d),Math.cos(d));
+  player.angle+=d*0.12;
+
+  // movement FIX (NO DRIFT)
+  const fx=Math.cos(player.angle);
+  const fy=Math.sin(player.angle);
+  const rx=-fy;
+  const ry=fx;
+
+  player.vx += (fx*input.y + rx*input.x)*0.4;
+  player.vy += (fy*input.y + ry*input.x)*0.4;
+
+  // STOP DRIFT
+  if(Math.abs(input.x)<0.05 && Math.abs(input.y)<0.05){
+    player.vx*=0.7;
+    player.vy*=0.7;
+  }
+
+  // clamp speed
+  let sp=Math.hypot(player.vx,player.vy);
+  if(sp>6){
+    player.vx*=6/sp;
+    player.vy*=6/sp;
+  }
+
+  player.vx*=0.92;
+  player.vy*=0.92;
+
+  player.x+=player.vx;
+  player.y+=player.vy;
+
+  cam.x=player.x-canvas.width/2;
+  cam.y=player.y-canvas.height/2;
+
+  // bullets
+  bullets.forEach(b=>{
+    b.x+=b.vx;
+    b.y+=b.vy;
+  });
+
+  // AI
+  aliens.forEach(a=>{
+    let dx=player.x-a.x;
+    let dy=player.y-a.y;
+    let d=Math.hypot(dx,dy);
+
+    if(d<600){
+      a.x+=dx/d;
+      a.y+=dy/d;
+    }
+  });
+}
+
+/* ================= DRAW ================= */
+function draw(){
+
+  ctx.fillStyle="black";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // stars (infinite)
+  ctx.fillStyle="white";
+  stars.forEach(s=>{
+    let x=(s.x-cam.x*0.2)%canvas.width;
+    let y=(s.y-cam.y*0.2)%canvas.height;
+
+    if(x<0)x+=canvas.width;
+    if(y<0)y+=canvas.height;
+
+    ctx.fillRect(x,y,2,2);
+  });
+
+  // bullets
+  ctx.fillStyle="#00ff44";
+  bullets.forEach(b=>{
+    ctx.fillRect(b.x-cam.x,b.y-cam.y,5,3);
+  });
+
+  // aliens
+  aliens.forEach(a=>{
+    ctx.drawImage(imgAlien,a.x-cam.x-40,a.y-cam.y-40,80,80);
+  });
+
+  // player
+  ctx.save();
+  ctx.translate(player.x-cam.x,player.y-cam.y);
+  ctx.rotate(player.angle);
+  ctx.drawImage(imgPlayer,-40,-40,80,80);
+  ctx.restore();
+
+  // HUD
+  document.getElementById("hud").innerText =
+    "USER: "+username+
+    " | POS: "+Math.floor(player.x)+","+Math.floor(player.y);
+}
+
+/* ================= LOOP ================= */
+function loop(){
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+
+</body>
+</html>
