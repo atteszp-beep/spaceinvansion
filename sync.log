@@ -5042,3 +5042,11 @@ fatal: Unable to create '/data/data/com.termux/files/home/scifi_aaa/.git/index.l
 
 Another git process seems to be running in this repository, or the lock file may be stale
 No changes to commit
+To github.com:atteszp-beep/spaceinvansion.git
+ ! [remote rejected] main -> main (cannot lock ref 'refs/heads/main': is at bbe50579b0522d55a692d84a2a4152a29435e8b3 but expected 39ab88cbab20f744e474dd3b732225d059234697)
+error: failed to push some refs to 'github.com:atteszp-beep/spaceinvansion.git'
+🚀 Synced to GitHub!
+Setting up watches.  Beware: since -r was given, this may take a while!
+Watches established.
+./ MODIFY sync.log
+📦 Changes detected...
