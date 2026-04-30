@@ -2,64 +2,69 @@
 <html lang="hu">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SPACE GAME FULL FIX</title>
+<title>SCI-FI WARZONE</title>
 
 <style>
 body{
-  margin:0;
-  overflow:hidden;
-  background:black;
-  font-family:Arial;
-  color:white;
+margin:0;
+overflow:hidden;
+background:black;
+font-family:Arial;
 }
 
+/* MENU */
 #menu{
-  position:absolute;
-  width:100%;
-  height:100%;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  background:rgba(0,0,0,0.7);
+position:absolute;
+width:100%;
+height:100%;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+background:radial-gradient(#111,#000);
+color:cyan;
 }
 
 button{
-  padding:15px;
-  margin:10px;
-  font-size:18px;
+padding:15px 25px;
+margin:10px;
+background:cyan;
+border:none;
+font-weight:bold;
 }
 
-#hud{
-  position:absolute;
-  top:10px;
-  left:10px;
-}
-
+/* JOYSTICK */
 #joystick{
-  position:absolute;
-  bottom:30px;
-  left:30px;
-  width:120px;
-  height:120px;
-  border-radius:50%;
-  background:rgba(255,255,255,0.1);
-  touch-action:none;
+position:absolute;
+bottom:40px;
+left:40px;
+width:130px;
+height:130px;
+border-radius:50%;
+background:rgba(0,255,255,0.1);
+display:none;
 }
 
 #stick{
-  width:50px;
-  height:50px;
-  background:white;
-  border-radius:50%;
-  position:absolute;
-  left:35px;
-  top:35px;
+width:50px;
+height:50px;
+border-radius:50%;
+background:cyan;
+position:absolute;
+left:40px;
+top:40px;
 }
 
-canvas{
-  display:block;
+/* MINIMAP */
+#minimap{
+position:absolute;
+top:20px;
+right:20px;
+width:180px;
+height:180px;
+background:rgba(0,255,255,0.05);
+border:1px solid cyan;
+border-radius:10px;
 }
 </style>
 </head>
@@ -67,264 +72,190 @@ canvas{
 <body>
 
 <div id="menu">
-  <h1>SPACE GAME</h1>
-  <input id="nameInput" placeholder="Username">
-  <button onclick="saveName()">START</button>
+<h1>🚀 SCI-FI WARZONE</h1>
+<button onclick="startMulti()">PLAY ONLINE</button>
 </div>
-
-<div id="hud"></div>
 
 <div id="joystick"><div id="stick"></div></div>
 
-<canvas id="game"></canvas>
+<canvas id="game" width="900" height="600"></canvas>
+<canvas id="minimap" width="180" height="180"></canvas>
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
 <script>
-/* ================= USER ================= */
-let username = sessionStorage.getItem("username") || "";
+app.get("/", (req, res) => {
+  res.send("🚀 SCIFI SERVER RUNNING");
+});
+const c=document.getElementById("game");
+const ctx=c.getContext("2d");
 
-function saveName(){
-  username = document.getElementById("nameInput").value || "Player";
-  sessionStorage.setItem("username", username);
-  startGame();
-}
+const mini=document.getElementById("minimap");
+const mctx=mini.getContext("2d");
 
-/* ================= CANVAS ================= */
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+let socket;
+let mySector=1;
 
-canvas.width = innerWidth;
-canvas.height = innerHeight;
+let players={};
+let bullets=[];
 
-/* ================= WORLD ================= */
-let socket = null;
-let players = {};
-let bullets = [];
-let aliens = [];
+let player={x:500,y:500,angle:0,hp:100};
+let input={x:0,y:0};
 
-const player = {
-  x:0,y:0,
-  vx:0,vy:0,
-  angle:0,
-  rotTarget:0
-};
+/* ===== IMAGES ===== */
+const bg=new Image(); bg.src="/public/img/bg.png";
+const pimg=new Image(); pimg.src="/public/img/player.png";
+const bimg=new Image(); bimg.src="/public/img/bullet.png";
 
-let cam = {x:0,y:0};
-let input = {x:0,y:0};
+/* ===== START ===== */
+function startMulti(){
 
-/* ================= IMAGES ================= */
-const imgPlayer = new Image();
-imgPlayer.src = "img/player.png";
+document.getElementById("menu").style.display="none";
+document.getElementById("joystick").style.display="block";
+c.style.display="block";
 
-const imgAlien = new Image();
-imgAlien.src = "img/alien.png";
+socket=io("http://localhost:3000");
 
-/* ================= GALAXY ================= */
-const stars = Array.from({length:400},()=>({
-  x:Math.random()*10000-5000,
-  y:Math.random()*10000-5000
-}));
+socket.on("sectorFull",()=>alert("Szektor tele!"));
 
-/* ================= JOYSTICK ================= */
-class Joystick{
-  constructor(zone,stick){
-    this.zone=zone;
-    this.stick=stick;
-    this.max=50;
-    this.active=false;
-
-    const move=(e)=>{
-      const r=zone.getBoundingClientRect();
-      const cx=r.left+r.width/2;
-      const cy=r.top+r.height/2;
-
-      const p=e.touches?e.touches[0]:e;
-
-      let dx=p.clientX-cx;
-      let dy=p.clientY-cy;
-
-      let len=Math.hypot(dx,dy);
-
-      if(len>this.max){
-        dx=dx/len*this.max;
-        dy=dy/len*this.max;
-      }
-
-      stick.style.transform=`translate(${dx}px,${dy}px)`;
-
-      input.x=dx/this.max;
-      input.y=dy/this.max;
-
-      if(len>5){
-        player.rotTarget=Math.atan2(dy,dx);
-      }
-    };
-
-    zone.addEventListener("touchstart",e=>{this.active=true;move(e)});
-    zone.addEventListener("touchmove",e=>this.active&&move(e));
-    zone.addEventListener("touchend",()=>this.reset());
-
-    zone.addEventListener("mousedown",e=>{this.active=true;move(e)});
-    window.addEventListener("mousemove",e=>this.active&&move(e));
-    window.addEventListener("mouseup",()=>this.reset());
-  }
-
-  reset(){
-    this.stick.style.transform="translate(0,0)";
-    input.x=0;
-    input.y=0;
-  }
-}
-
-new Joystick(
-  document.getElementById("joystick"),
-  document.getElementById("stick")
-);
-
-/* ================= START ================= */
-function startGame(){
-  document.getElementById("menu").style.display="none";
-
-  // spawn aliens
-  for(let i=0;i<20;i++){
-    aliens.push({
-      x:Math.random()*4000-2000,
-      y:Math.random()*4000-2000,
-      hp:100
-    });
-  }
-
-  // MULTI (Render)
-  socket = io("https://spaceinvansion-p1tl.onrender.com");
-
-  socket.emit("join",{name:username});
-
-  socket.on("state",data=>{
-    players=data.players;
-    bullets=data.bullets;
-  });
-}
-
-/* ================= SHOOT ================= */
-document.body.addEventListener("click",()=>{
-  bullets.push({
-    x:player.x,
-    y:player.y,
-    vx:Math.cos(player.angle)*12,
-    vy:Math.sin(player.angle)*12
-  });
+socket.on("joined",(s)=>{
+mySector=s;
 });
 
-/* ================= UPDATE ================= */
+socket.on("state",(d)=>{
+players=d.sectors[mySector]||{};
+bullets=d.bullets||[];
+});
+
+}
+
+/* ===== SECTOR JOIN ===== */
+function joinSector(s){
+socket.emit("joinSector",s);
+}
+
+/* ===== JOYSTICK ===== */
+const joy=document.getElementById("joystick");
+const stick=document.getElementById("stick");
+
+let drag=false,cx=0,cy=0;
+
+joy.addEventListener("touchstart",e=>{
+drag=true;
+let r=joy.getBoundingClientRect();
+cx=r.left+r.width/2;
+cy=r.top+r.height/2;
+});
+
+joy.addEventListener("touchmove",e=>{
+if(!drag)return;
+
+let t=e.touches[0];
+
+let dx=t.clientX-cx;
+let dy=t.clientY-cy;
+
+let d=Math.min(45,Math.hypot(dx,dy));
+let a=Math.atan2(dy,dx);
+
+dx=Math.cos(a)*d;
+dy=Math.sin(a)*d;
+
+stick.style.transform=`translate(${dx}px,${dy}px)`;
+
+input.x=dx/45;
+input.y=dy/45;
+
+player.angle=Math.atan2(input.y,input.x);
+});
+
+joy.addEventListener("touchend",()=>{
+drag=false;
+input={x:0,y:0};
+stick.style.transform="translate(0,0)";
+});
+
+/* ===== SHOOT ===== */
+window.addEventListener("keydown",e=>{
+if(e.key===" "){
+socket.emit("shoot",player);
+}
+});
+
+/* ===== UPDATE ===== */
 function update(){
 
-  // rotation
-  let d=player.rotTarget-player.angle;
-  d=Math.atan2(Math.sin(d),Math.cos(d));
-  player.angle+=d*0.12;
+player.x+=input.x*6;
+player.y+=input.y*6;
 
-  // movement FIX (NO DRIFT)
-  const fx=Math.cos(player.angle);
-  const fy=Math.sin(player.angle);
-  const rx=-fy;
-  const ry=fx;
+socket.emit("move",player);
 
-  player.vx += (fx*input.y + rx*input.x)*0.4;
-  player.vy += (fy*input.y + ry*input.x)*0.4;
-
-  // STOP DRIFT
-  if(Math.abs(input.x)<0.05 && Math.abs(input.y)<0.05){
-    player.vx*=0.7;
-    player.vy*=0.7;
-  }
-
-  // clamp speed
-  let sp=Math.hypot(player.vx,player.vy);
-  if(sp>6){
-    player.vx*=6/sp;
-    player.vy*=6/sp;
-  }
-
-  player.vx*=0.92;
-  player.vy*=0.92;
-
-  player.x+=player.vx;
-  player.y+=player.vy;
-
-  cam.x=player.x-canvas.width/2;
-  cam.y=player.y-canvas.height/2;
-
-  // bullets
-  bullets.forEach(b=>{
-    b.x+=b.vx;
-    b.y+=b.vy;
-  });
-
-  // AI
-  aliens.forEach(a=>{
-    let dx=player.x-a.x;
-    let dy=player.y-a.y;
-    let d=Math.hypot(dx,dy);
-
-    if(d<600){
-      a.x+=dx/d;
-      a.y+=dy/d;
-    }
-  });
 }
 
-/* ================= DRAW ================= */
+/* ===== DRAW ===== */
 function draw(){
 
-  ctx.fillStyle="black";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+ctx.drawImage(bg,0,0,900,600);
 
-  // stars (infinite)
-  ctx.fillStyle="white";
-  stars.forEach(s=>{
-    let x=(s.x-cam.x*0.2)%canvas.width;
-    let y=(s.y-cam.y*0.2)%canvas.height;
+/* PLAYERS */
+for(let id in players){
+let p=players[id];
+if(p.dead) continue;
 
-    if(x<0)x+=canvas.width;
-    if(y<0)y+=canvas.height;
+ctx.save();
+ctx.translate(p.x,p.y);
+ctx.rotate(p.angle);
 
-    ctx.fillRect(x,y,2,2);
-  });
+ctx.drawImage(pimg,-20,-20,40,40);
 
-  // bullets
-  ctx.fillStyle="#00ff44";
-  bullets.forEach(b=>{
-    ctx.fillRect(b.x-cam.x,b.y-cam.y,5,3);
-  });
+ctx.fillStyle="red";
+ctx.fillRect(-20,-30,40,5);
+ctx.fillStyle="lime";
+ctx.fillRect(-20,-30,40*(p.hp/100),5);
 
-  // aliens
-  aliens.forEach(a=>{
-    ctx.drawImage(imgAlien,a.x-cam.x-40,a.y-cam.y-40,80,80);
-  });
-
-  // player
-  ctx.save();
-  ctx.translate(player.x-cam.x,player.y-cam.y);
-  ctx.rotate(player.angle);
-  ctx.drawImage(imgPlayer,-40,-40,80,80);
-  ctx.restore();
-
-  // HUD
-  document.getElementById("hud").innerText =
-    "USER: "+username+
-    " | POS: "+Math.floor(player.x)+","+Math.floor(player.y);
+ctx.restore();
 }
 
-/* ================= LOOP ================= */
+/* BULLETS */
+bullets.forEach(b=>{
+if(b.sector!==mySector)return;
+ctx.drawImage(bimg,b.x,b.y,10,10);
+});
+
+}
+
+/* ===== MINIMAP ===== */
+function drawMini(){
+
+mctx.clearRect(0,0,180,180);
+
+for(let id in players){
+let p=players[id];
+
+let x=(p.x%2000)/2000*180;
+let y=(p.y%2000)/2000*180;
+
+mctx.fillStyle=(id===socket.id)?"lime":"cyan";
+mctx.beginPath();
+mctx.arc(x,y,3,0,Math.PI*2);
+mctx.fill();
+}
+
+mctx.strokeStyle="cyan";
+mctx.strokeRect(0,0,180,180);
+
+}
+
+/* ===== LOOP ===== */
 function loop(){
-  update();
-  draw();
-  requestAnimationFrame(loop);
+update();
+draw();
+drawMini();
+requestAnimationFrame(loop);
 }
-
 loop();
+
 </script>
 
 </body>
-</html>
+</html>test
