@@ -14924,3 +14924,31 @@ Your branch is ahead of 'origin/main' by 42 commits.
 
 nothing to commit, working tree clean
 No changes to commit
+ssh: Could not resolve hostname github.com: No address associated with hostname
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+🚀 Synced to GitHub!
+Setting up watches.  Beware: since -r was given, this may take a while!
+Watches established.
+./ MODIFY watchdog.log
+📦 Changes detected...
+On branch main
+Your branch is ahead of 'origin/main' by 43 commits.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   watchdog.log
+
+no changes added to commit (use "git add" and/or "git commit -a")
+No changes to commit
+ssh: Could not resolve hostname github.com: No address associated with hostname
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+🚀 Synced to GitHub!
+Setting up watches.  Beware: since -r was given, this may take a while!
