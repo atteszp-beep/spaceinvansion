@@ -2283,3 +2283,7 @@ To github.com:atteszp-beep/spaceinvansion.git
  ! [remote rejected] main -> main (cannot lock ref 'refs/heads/main': is at b09e2afbf2bcb3d3211cf771eb95de960d231657 but expected 4a21de1a8ece8a12e4ccf738ffcfb72029f7e30d)
 error: failed to push some refs to 'github.com:atteszp-beep/spaceinvansion.git'
 🚀 Synced to GitHub!
+Setting up watches.  Beware: since -r was given, this may take a while!
+Watches established.
+./.git/ MODIFY COMMIT_EDITMSG
+📦 Changes detected...
