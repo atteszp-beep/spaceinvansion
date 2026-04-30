@@ -90,3 +90,10 @@ Setting up watches.  Beware: since -r was given, this may take a while!
 Watches established.
 ./.git/objects/f8/ CREATE tmp_obj_poCsmt
 📦 Changes detected...
+[main 8b70290] auto sync 2026-04-30 09:58:04
+ 1 file changed, 3 insertions(+)
+To github.com:atteszp-beep/spaceinvansion.git
+ ! [remote rejected] main -> main (cannot lock ref 'refs/heads/main': is at 788b2a30d8c6cc6e3899a801ecd4ed408e5b26f7 but expected 36af5fee4ca2e41f5470bee16a3420f2b9fbd7cc)
+error: failed to push some refs to 'github.com:atteszp-beep/spaceinvansion.git'
+🚀 Synced to GitHub!
+Setting up watches.  Beware: since -r was given, this may take a while!
