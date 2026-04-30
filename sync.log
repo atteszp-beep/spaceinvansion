@@ -3419,3 +3419,12 @@ Setting up watches.  Beware: since -r was given, this may take a while!
 Watches established.
 ./.git/objects/55/ CREATE tmp_obj_bjkJyL
 📦 Changes detected...
+fatal: Unable to create '/data/data/com.termux/files/home/scifi_aaa/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, or the lock file may be stale
+No changes to commit
+To github.com:atteszp-beep/spaceinvansion.git
+ ! [remote rejected] main -> main (cannot lock ref 'refs/heads/main': is at 608e5bb0a5a122ffaa15bc45e6250c9f27565b14 but expected 97d8e1db0d1e6f8e1b3b7a529573f58e6af46bef)
+error: failed to push some refs to 'github.com:atteszp-beep/spaceinvansion.git'
+🚀 Synced to GitHub!
+Setting up watches.  Beware: since -r was given, this may take a while!
