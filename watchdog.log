@@ -108,3 +108,6 @@ To github.com:atteszp-beep/spaceinvansion.git
 error: failed to push some refs to 'github.com:atteszp-beep/spaceinvansion.git'
 🚀 Synced to GitHub!
 Setting up watches.  Beware: since -r was given, this may take a while!
+Watches established.
+./.git/objects/ CREATE,ISDIR d8
+📦 Changes detected...
